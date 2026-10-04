@@ -1,0 +1,108 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// 1. Data User / Perusahaan (Eksportir & Pemilik Lahan)
+model User {
+  id            String         @id @default(uuid())
+  email         String         @unique
+  passwordHash  String
+  role          UserRole       @default(EXPORTER)
+  companyName   String
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  
+  documents     CarbonDocument[]
+  landPlots     LandPlot[]
+  transactions  Transaction[]
+}
+
+enum UserRole {
+  EXPORTER
+  LANDOWNER
+  ADMIN
+}
+
+// 2. Modul CBAM: Dokumen Laporan Emisi & Hasil Ekstraksi AI (Featherless AI)
+model CarbonDocument {
+  id           String         @id @default(uuid())
+  userId       String
+  user         User           @relation(fields: [userId], references: [id])
+  fileUrl      String         
+  status       DocStatus      @default(PENDING)
+  extractedData Json?         
+  cbamScore    Float?         
+  createdAt    DateTime       @default(now())
+  
+  matches      Matchmaking[]
+}
+
+enum DocStatus {
+  PENDING
+  PROCESSING
+  VERIFIED
+  REJECTED
+}
+
+// 3. Modul Satelit: Data Lahan Hijau & Analisis Vegetasi Pemilik Lahan
+model LandPlot {
+  id             String        @id @default(uuid())
+  ownerId        String
+  owner          User          @relation(fields: [ownerId], references: [id])
+  plotName       String
+  locationCoords Json          
+  totalAreaHectare Float
+  ndviScore      Float?        
+  carbonCreditsAvailable Float 
+  createdAt      DateTime      @default(now())
+
+  matches        Matchmaking[]
+}
+
+// 4. Modul Matchmaking & Transaksi: Pertemuan Eksportir dengan Pemilik Lahan
+model Matchmaking {
+  id           String         @id @default(uuid())
+  documentId   String
+  document     CarbonDocument @relation(fields: [documentId], references: [id])
+  landPlotId   String
+  landPlot     LandPlot       @relation(fields: [landPlotId], references: [id])
+  matchedScore Float          
+  status       MatchStatus    @default(SUGGESTED)
+  createdAt    DateTime       @default(now())
+
+  transaction  Transaction?
+}
+
+enum MatchStatus {
+  SUGGESTED
+  ACCEPTED
+  REJECTED
+}
+
+model Transaction {
+  id            String      @id @default(uuid())
+  matchId       String      @unique
+  match         Matchmaking @relation(fields: [matchId], references: [id])
+  buyerId       String
+  buyer         User        @relation(fields: [buyerId], references: [id])
+  amountPaid    Float
+  creditsTransferred Float
+  status        TxStatus    @default(PENDING)
+  createdAt     DateTime    @default(now())
+}
+
+enum TxStatus {
+  PENDING
+  SUCCESS
+  FAILED
+} 
