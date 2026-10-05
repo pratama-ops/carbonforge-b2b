@@ -7,9 +7,10 @@ import { AuthModule } from './auth/auth.module';
 import { LandplotModule } from './landplot/landplot.module';
 import { TransactionModule } from './transaction/transaction.module';
 import { MatchmakingModule } from './matchmaking/matchmaking.module';
+import { ExtractorModule } from './extractor/extractor.module';
 
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true }), PrismaModule, AuthModule, LandplotModule, TransactionModule, MatchmakingModule],
+  imports: [ConfigModule.forRoot({ isGlobal: true }), PrismaModule, AuthModule, LandplotModule, TransactionModule, MatchmakingModule, ExtractorModule],
   controllers: [AppController],
   providers: [AppService],
 })
