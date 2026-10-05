@@ -24,7 +24,7 @@ model User {
   
   documents     CarbonDocument[]
   landPlots     LandPlot[]
-  transactions  Transaction[]
+  transactions  Transaction[]  @relation("exporter")
 }
 
 enum UserRole {
@@ -75,6 +75,7 @@ model LandPlot {
   createdAt      DateTime      @default(now())
 
   matches        Matchmaking[]
+  transactions   Transaction[]
 }
 
 // 4. Modul Matchmaking & Transaksi: Pertemuan Eksportir dengan Pemilik Lahan
@@ -97,20 +98,22 @@ enum MatchStatus {
   REJECTED
 }
 
-model Transaction {
-  id            String      @id @default(uuid())
-  matchId       String      @unique
-  match         Matchmaking @relation(fields: [matchId], references: [id])
-  buyerId       String
-  buyer         User        @relation(fields: [buyerId], references: [id])
-  amountPaid    Float
-  creditsTransferred Float
-  status        TxStatus    @default(PENDING)
-  createdAt     DateTime    @default(now())
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
 }
 
-enum TxStatus {
-  PENDING
-  SUCCESS
-  FAILED
+model Transaction {
+  id            String      @id @default(uuid())
+  matchId       String?     @unique
+  match         Matchmaking? @relation(fields: [matchId], references: [id])
+  exporterId    String
+  exporter      User        @relation("exporter", fields: [exporterId], references: [id])
+  landPlotId    String
+  landPlot      LandPlot    @relation(fields: [landPlotId], references: [id])
+  amount        Float
+  totalPrice    Float
+  status        TransactionStatus @default(PENDING)
+  createdAt     DateTime    @default(now())
 } 
