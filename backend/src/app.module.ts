@@ -8,9 +8,10 @@ import { LandplotModule } from './landplot/landplot.module';
 import { TransactionModule } from './transaction/transaction.module';
 import { MatchmakingModule } from './matchmaking/matchmaking.module';
 import { ExtractorModule } from './extractor/extractor.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true }), PrismaModule, AuthModule, LandplotModule, TransactionModule, MatchmakingModule, ExtractorModule],
+  imports: [ConfigModule.forRoot({ isGlobal: true }), PrismaModule, AuthModule, LandplotModule, TransactionModule, MatchmakingModule, ExtractorModule, AdminModule],
   controllers: [AppController],
   providers: [AppService],
 })
