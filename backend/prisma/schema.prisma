@@ -55,15 +55,23 @@ enum DocStatus {
 }
 
 // 3. Modul Satelit: Data Lahan Hijau & Analisis Vegetasi Pemilik Lahan
+enum LandPlotStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
 model LandPlot {
   id             String        @id @default(uuid())
-  ownerId        String
-  owner          User          @relation(fields: [ownerId], references: [id])
+  landownerId    String
+  owner          User          @relation(fields: [landownerId], references: [id])
   plotName       String
-  locationCoords Json          
-  totalAreaHectare Float
-  ndviScore      Float?        
-  carbonCreditsAvailable Float 
+  location       String
+  areaSize       Float
+  carbonCapacity Float
+  documentUrl    String
+  status         LandPlotStatus @default(PENDING)
+  ndviScore      Float?
   createdAt      DateTime      @default(now())
 
   matches        Matchmaking[]

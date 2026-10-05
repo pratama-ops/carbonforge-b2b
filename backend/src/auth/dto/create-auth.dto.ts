@@ -7,7 +7,7 @@ import {
   Matches,
 } from 'class-validator';
 
-export class CreateAuthDto {
+export class CreateAuthDto { 
   @IsEmail({}, { message: 'Invalid email format' })
   @IsNotEmpty({ message: 'Email is required' })
   @MaxLength(255, { message: 'Email must not exceed 255 characters' })

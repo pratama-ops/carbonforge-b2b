@@ -1,26 +1,60 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreateLandplotDto } from './dto/create-landplot.dto';
-import { UpdateLandplotDto } from './dto/update-landplot.dto';
 
 @Injectable()
 export class LandplotService {
-  create(createLandplotDto: CreateLandplotDto) {
-    return 'This action adds a new landplot';
+  constructor(private readonly prisma: PrismaService) {}
+
+  async create(userId: string, dto: CreateLandplotDto) {
+    return this.prisma.landPlot.create({
+      data: {
+        landownerId: userId,
+        plotName: dto.plotName,
+        location: dto.location,
+        areaSize: dto.areaSize,
+        carbonCapacity: dto.carbonCapacity,
+        documentUrl: dto.documentUrl,
+        ndviScore: dto.ndviScore,
+        status: 'PENDING',
+      },
+    });
   }
 
-  findAll() {
-    return `This action returns all landplot`;
+  async findAll() {
+    return this.prisma.landPlot.findMany({
+      include: {
+        owner: {
+          select: {
+            id: true,
+            email: true,
+            companyName: true,
+            role: true,
+          },
+        },
+      },
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} landplot`;
-  }
+  async findOne(id: string) {
+    const landPlot = await this.prisma.landPlot.findUnique({
+      where: { id },
+      include: {
+        owner: {
+          select: {
+            id: true,
+            email: true,
+            companyName: true,
+            role: true,
+          },
+        },
+      },
+    });
 
-  update(id: number, updateLandplotDto: UpdateLandplotDto) {
-    return `This action updates a #${id} landplot`;
-  }
+    if (!landPlot) {
+      throw new NotFoundException(`Land plot with ID "${id}" not found`);
+    }
 
-  remove(id: number) {
-    return `This action removes a #${id} landplot`;
+    return landPlot;
   }
 }
