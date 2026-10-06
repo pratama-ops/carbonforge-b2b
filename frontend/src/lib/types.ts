@@ -79,3 +79,67 @@ export interface Transaction {
   status: "COMPLETED" | "IN_PROGRESS" | "PENDING";
   date: string;
 }
+
+// ============================================================================
+// CarbonForge B2B — Corporate / Buyer Dashboard Types
+// ============================================================================
+
+export type TransactionStatus = "COMPLETED" | "PENDING" | "FAILED";
+
+export interface CorporateStats {
+  totalCarbonOffsetTon: number;
+  annualEmissionTargetTon: number;
+  totalCarbonInvestment: number;
+  completedTransactions: number;
+  pendingTransactions: number;
+}
+
+export interface MatchmakingRecommendation {
+  id: string;
+  plotName: string;
+  location: string;
+  vegetationType: VegetationType;
+  areaHa: number;
+  estimatedCarbonCredits: number;
+  sustainabilityRating: number; // 1-5
+  pricePerCredit: number;
+  landownerName: string;
+  matchScore: number; // percentage 0-100
+}
+
+export interface CorporateTransaction {
+  id: string;
+  plotName: string;
+  landownerName: string;
+  volumeTonCO2e: number;
+  pricePerTon: number;
+  totalAmount: number;
+  status: TransactionStatus;
+  transactionDate: string;
+  certificateDate: string;
+  certificateId: string;
+}
+
+// ============================================================================
+// CarbonForge B2B — Landowner Sub-Page Types
+// ============================================================================
+
+export type LandownerTransactionStatus = "COMPLETED" | "PROCESSING";
+
+export interface LandownerTransaction {
+  id: string;
+  buyerName: string;
+  plotName: string;
+  volumeTonCO2e: number;
+  pricePerTon: number;
+  totalAmount: number;
+  status: LandownerTransactionStatus;
+  transactionDate: string;
+}
+
+export interface LandownerProfile {
+  name: string;
+  email: string;
+  phone: string;
+  walletAddress: string;
+}
