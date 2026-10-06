@@ -258,3 +258,26 @@ export interface AdminSettings {
   ipWhitelistEnabled: boolean;
   whitelistedIps: string[];
 }
+
+// ============================================================================
+// CarbonForge B2B — AI Document Extractor Types
+// ============================================================================
+
+export interface ExtractedLandData {
+  certificateNumber: string;
+  ownerName: string;
+  gpsCoordinates: {
+    lat: string;
+    lng: string;
+  };
+  areaHectares: string;
+  estimatedCarbonPotential: string;
+}
+
+export type ExtractionStatus = "idle" | "uploading" | "processing" | "completed" | "error";
+
+export interface ProcessingStep {
+  id: string;
+  label: string;
+  status: "pending" | "active" | "completed";
+}
