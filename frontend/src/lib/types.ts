@@ -153,3 +153,108 @@ export interface LandownerProfile {
   phone: string;
   walletAddress: string;
 }
+
+// ============================================================================
+// CarbonForge B2B — Admin Dashboard Types
+// ============================================================================
+
+export type AdminUserRole = "LANDOWNER" | "CORPORATE_BUYER" | "ADMIN";
+
+export type AdminUserStatus = "ACTIVE" | "SUSPENDED" | "PENDING_VERIFICATION";
+
+export interface AdminUser {
+  id: string;
+  name: string;
+  email: string;
+  role: AdminUserRole;
+  status: AdminUserStatus;
+  registeredAt: string;
+  lastActiveAt: string;
+  totalTransactions: number;
+  totalVolumeTonCO2e: number;
+}
+
+export interface AdminPlatformStats {
+  totalLandRegistered: number;
+  totalVolumeCarbonTonCO2e: number;
+  totalActiveUsers: number;
+  totalSuccessfulTransactions: number;
+  pendingVerifications: number;
+  totalRevenue: number;
+}
+
+export interface AdminLandVerification {
+  id: string;
+  plotName: string;
+  landownerName: string;
+  landownerEmail: string;
+  location: string;
+  areaHa: number;
+  vegetationType: VegetationType;
+  estimatedCarbonCredits: number;
+  submittedAt: string;
+  documentsCount: number;
+  status: VerificationStatus;
+  documents: AdminDocument[];
+}
+
+export interface AdminDocument {
+  id: string;
+  name: string;
+  type: "LAND_TITLE" | "VEGETATION_REPORT" | "GPS_COORDINATES" | "IDENTITY" | "OTHER";
+  uploadedAt: string;
+  fileSize: string;
+  verified: boolean;
+}
+
+export interface AdminTransaction {
+  id: string;
+  plotName: string;
+  landownerName: string;
+  buyerName: string;
+  volumeTonCO2e: number;
+  pricePerTon: number;
+  totalAmount: number;
+  status: TransactionStatus;
+  transactionDate: string;
+  certificateId: string | null;
+}
+
+export interface AdminSystemLog {
+  id: string;
+  timestamp: string;
+  level: "INFO" | "WARNING" | "ERROR" | "CRITICAL";
+  category: "AUTH" | "VERIFICATION" | "TRANSACTION" | "USER_MANAGEMENT" | "SYSTEM";
+  message: string;
+  userId: string | null;
+  userName: string | null;
+  metadata: Record<string, string | number | boolean> | null;
+}
+
+export interface AdminSettings {
+  platformName: string;
+  supportEmail: string;
+  maxLandAreaHa: number;
+  verificationRequired: boolean;
+  autoApproveThreshold: number;
+  maintenanceMode: boolean;
+  notificationEmail: boolean;
+  notificationSms: boolean;
+  platformFeePercent: number;
+  fixedTransactionFee: number;
+  minimumTransactionAmount: number;
+  maximumTransactionAmount: number;
+  aiConfidenceThreshold: number;
+  documentToleranceDays: number;
+  maxDocumentsPerLand: number;
+  aiAutoExtraction: boolean;
+  groqApiKey: string;
+  webhookUrl: string;
+  blockchainRegistryAddress: string;
+  apiRateLimit: number;
+  webhookRetryAttempts: number;
+  twoFactorRequired: boolean;
+  sessionTimeoutMinutes: number;
+  ipWhitelistEnabled: boolean;
+  whitelistedIps: string[];
+}
