@@ -137,7 +137,14 @@ export default function CarbonMatchmaking({
 }: CarbonMatchmakingProps) {
   const [vegetationFilter, setVegetationFilter] = useState<VegetationFilter>("All");
   const [ratingFilter, setRatingFilter] = useState<RatingFilter>("All");
+  const [locationFilter, setLocationFilter] = useState<string>("All");
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Extract unique locations for filter
+  const locationOptions = useMemo(() => {
+    const locations = [...new Set(recommendations.map((rec) => rec.location))];
+    return ["All", ...locations.sort()];
+  }, [recommendations]);
 
   const filteredRecommendations = useMemo(() => {
     return recommendations.filter((rec) => {
@@ -154,6 +161,11 @@ export default function CarbonMatchmaking({
         }
       }
 
+      // Location filter
+      if (locationFilter !== "All" && rec.location !== locationFilter) {
+        return false;
+      }
+
       // Search filter
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
@@ -166,7 +178,7 @@ export default function CarbonMatchmaking({
 
       return true;
     });
-  }, [recommendations, vegetationFilter, ratingFilter, searchQuery]);
+  }, [recommendations, vegetationFilter, ratingFilter, locationFilter, searchQuery]);
 
   return (
     <div className="space-y-6">
@@ -220,6 +232,20 @@ export default function CarbonMatchmaking({
             {ratingOptions.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
+              </option>
+            ))}
+          </select>
+
+          {/* Location filter */}
+          <select
+            value={locationFilter}
+            onChange={(e) => setLocationFilter(e.target.value)}
+            className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+            aria-label="Filter by location"
+          >
+            {locationOptions.map((location) => (
+              <option key={location} value={location}>
+                {location === "All" ? "All Locations" : location}
               </option>
             ))}
           </select>

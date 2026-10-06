@@ -111,6 +111,12 @@ export default function TransactionTable({ transactions }: TransactionTableProps
                 scope="col"
                 className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500"
               >
+                Transaction ID
+              </th>
+              <th
+                scope="col"
+                className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500"
+              >
                 Plot / Landowner
               </th>
               <th
@@ -156,6 +162,9 @@ export default function TransactionTable({ transactions }: TransactionTableProps
               filteredTransactions.map((tx) => (
                 <tr key={tx.id} className="transition-colors hover:bg-slate-50">
                   <td className="whitespace-nowrap px-6 py-4">
+                    <span className="text-sm font-medium text-slate-900">TX-{tx.id.padStart(4, "0")}</span>
+                  </td>
+                  <td className="whitespace-nowrap px-6 py-4">
                     <div>
                       <p className="text-sm font-medium text-slate-900">{tx.plotName}</p>
                       <p className="text-sm text-slate-500">{tx.landownerName}</p>
@@ -188,7 +197,7 @@ export default function TransactionTable({ transactions }: TransactionTableProps
               ))
             ) : (
               <tr>
-                <td colSpan={7} className="px-6 py-12 text-center">
+                <td colSpan={8} className="px-6 py-12 text-center">
                   <div className="flex flex-col items-center">
                     <svg
                       className="h-12 w-12 text-slate-300"

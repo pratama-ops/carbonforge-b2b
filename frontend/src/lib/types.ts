@@ -120,6 +120,16 @@ export interface CorporateTransaction {
   certificateId: string;
 }
 
+export interface CorporateProfile {
+  companyName: string;
+  email: string;
+  phone: string;
+  address: string;
+  billingEmail: string;
+  taxId: string;
+  annualTargetTon: number;
+}
+
 // ============================================================================
 // CarbonForge B2B — Landowner Sub-Page Types
 // ============================================================================
