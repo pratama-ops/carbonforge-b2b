@@ -1,7 +1,6 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
+// ============================================================
+// CarbonForge B2B — Prisma Schema v2
+// ============================================================
 
 generator client {
   provider = "prisma-client"
@@ -12,39 +11,20 @@ datasource db {
   provider = "postgresql"
 }
 
-// 1. Data User / Perusahaan (Eksportir & Pemilik Lahan)
-model User {
-  id            String         @id @default(uuid())
-  email         String         @unique
-  passwordHash  String
-  role          UserRole       @default(EXPORTER)
-  companyName   String
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  
-  documents     CarbonDocument[]
-  landPlots     LandPlot[]
-  transactions  Transaction[]  @relation("exporter")
-}
+// ============================================================
+// ENUMS
+// ============================================================
 
 enum UserRole {
-  EXPORTER
   LANDOWNER
+  CORPORATE_BUYER
   ADMIN
 }
 
-// 2. Modul CBAM: Dokumen Laporan Emisi & Hasil Ekstraksi AI (Featherless AI)
-model CarbonDocument {
-  id           String         @id @default(uuid())
-  userId       String
-  user         User           @relation(fields: [userId], references: [id])
-  fileUrl      String         
-  status       DocStatus      @default(PENDING)
-  extractedData Json?         
-  cbamScore    Float?         
-  createdAt    DateTime       @default(now())
-  
-  matches      Matchmaking[]
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  PENDING_VERIFICATION
 }
 
 enum DocStatus {
@@ -54,42 +34,16 @@ enum DocStatus {
   REJECTED
 }
 
-// 3. Modul Satelit: Data Lahan Hijau & Analisis Vegetasi Pemilik Lahan
 enum LandPlotStatus {
   PENDING
   VERIFIED
   REJECTED
 }
 
-model LandPlot {
-  id             String        @id @default(uuid())
-  landownerId    String
-  owner          User          @relation(fields: [landownerId], references: [id])
-  plotName       String
-  location       String
-  areaSize       Float
-  carbonCapacity Float
-  documentUrl    String
-  status         LandPlotStatus @default(PENDING)
-  ndviScore      Float?
-  createdAt      DateTime      @default(now())
-
-  matches        Matchmaking[]
-  transactions   Transaction[]
-}
-
-// 4. Modul Matchmaking & Transaksi: Pertemuan Eksportir dengan Pemilik Lahan
-model Matchmaking {
-  id           String         @id @default(uuid())
-  documentId   String
-  document     CarbonDocument @relation(fields: [documentId], references: [id])
-  landPlotId   String
-  landPlot     LandPlot       @relation(fields: [landPlotId], references: [id])
-  matchedScore Float          
-  status       MatchStatus    @default(SUGGESTED)
-  createdAt    DateTime       @default(now())
-
-  transaction  Transaction?
+enum VegetationType {
+  Mangrove
+  Tropical_Rainforest
+  Peatland
 }
 
 enum MatchStatus {
@@ -100,20 +54,224 @@ enum MatchStatus {
 
 enum TransactionStatus {
   PENDING
+  IN_ESCROW
   COMPLETED
+  FAILED
   CANCELLED
 }
 
-model Transaction {
+enum LogLevel {
+  INFO
+  WARN
+  ERROR
+  SECURITY
+}
+
+enum LogCategory {
+  AUTH
+  VERIFICATION
+  TRANSACTION
+  USER_MANAGEMENT
+  SYSTEM
+}
+
+enum CertificateStatus {
+  ACTIVE
+  RETIRED
+  PENDING
+}
+
+// ============================================================
+// MODEL: User
+// ============================================================
+
+model User {
+  id            String     @id @default(uuid())
+  email         String     @unique
+  passwordHash  String
+  name          String
+  role          UserRole   @default(LANDOWNER)
+  status        UserStatus @default(ACTIVE)
+  phone         String?
+  address       String?
+  walletAddress String?
+  lastActiveAt  DateTime?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  documents            CarbonDocument[]
+  landPlots            LandPlot[]
+  transactionsAsBuyer  Transaction[] @relation("buyer")
+  transactionsAsSeller Transaction[] @relation("seller")
+  systemLogs           SystemLog[]
+  settings             PlatformSetting[]
+
+  @@map("users")
+}
+
+// ============================================================
+// MODEL: CarbonDocument (AI Extractor)
+// ============================================================
+
+model CarbonDocument {
+  id            String         @id @default(uuid())
+  userId        String
+  user          User           @relation(fields: [userId], references: [id])
+  landPlotId    String?
+  landPlot      LandPlot?      @relation(fields: [landPlotId], references: [id])
+  fileUrl       String
+  fileType      String         @default("PDF")
+  fileSize      Int?
+  status        DocStatus      @default(PENDING)
+  extractedData Json?
+  aiConfidence  Float?
+  cbamScore     Float?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  matches       Matchmaking[]
+
+  @@map("carbon_documents")
+}
+
+// ============================================================
+// MODEL: LandPlot
+// ============================================================
+
+model LandPlot {
+  id                     String           @id @default(uuid())
+  landownerId            String
+  owner                  User             @relation(fields: [landownerId], references: [id])
+  plotName               String
+  location               String
+  latitude               Float
+  longitude              Float
+  areaHa                 Float
+  vegetationType         VegetationType
+  estimatedCarbonCredits Float
+  carbonCapacity         Float
+  documentUrl            String?
+  status                 LandPlotStatus   @default(PENDING)
+  ndviScore              Float?
+  rejectionReason        String?
+  verifiedAt             DateTime?
+  verifiedBy             String?
+  createdAt              DateTime         @default(now())
+  updatedAt              DateTime         @updatedAt
+
+  documents              CarbonDocument[]
+  matches                Matchmaking[]
+  transactions           Transaction[]
+  certificates           CarbonCertificate[]
+
+  @@map("land_plots")
+}
+
+// ============================================================
+// MODEL: Matchmaking
+// ============================================================
+
+model Matchmaking {
   id            String      @id @default(uuid())
-  matchId       String?     @unique
-  match         Matchmaking? @relation(fields: [matchId], references: [id])
-  exporterId    String
-  exporter      User        @relation("exporter", fields: [exporterId], references: [id])
+  documentId    String?
+  document      CarbonDocument? @relation(fields: [documentId], references: [id])
   landPlotId    String
   landPlot      LandPlot    @relation(fields: [landPlotId], references: [id])
-  amount        Float
-  totalPrice    Float
-  status        TransactionStatus @default(PENDING)
+  buyerId       String
+  matchedScore  Float
+  status        MatchStatus @default(SUGGESTED)
+  filterCriteria Json?
   createdAt     DateTime    @default(now())
-} 
+
+  transaction   Transaction?
+
+  @@map("matchmaking")
+}
+
+// ============================================================
+// MODEL: Transaction (dengan Escrow)
+// ============================================================
+
+model Transaction {
+  id               String            @id @default(uuid())
+  matchId          String?           @unique
+  match            Matchmaking?      @relation(fields: [matchId], references: [id])
+  buyerId          String
+  buyer            User              @relation("buyer", fields: [buyerId], references: [id])
+  sellerId         String
+  seller           User              @relation("seller", fields: [sellerId], references: [id])
+  landPlotId       String
+  landPlot         LandPlot          @relation(fields: [landPlotId], references: [id])
+  volumeTonCO2e    Float
+  pricePerTon      Float
+  totalAmount      Float
+  platformFee      Float             @default(0)
+  netAmount        Float
+  status           TransactionStatus @default(PENDING)
+  escrowReleasedAt DateTime?
+  failureReason    String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  certificate      CarbonCertificate?
+
+  @@map("transactions")
+}
+
+// ============================================================
+// MODEL: CarbonCertificate
+// ============================================================
+
+model CarbonCertificate {
+  id               String            @id @default(uuid())
+  certificateId    String            @unique
+  transactionId    String            @unique
+  transaction      Transaction       @relation(fields: [transactionId], references: [id])
+  landPlotId       String
+  landPlot         LandPlot          @relation(fields: [landPlotId], references: [id])
+  buyerId          String
+  volumeTonCO2e    Float
+  status           CertificateStatus @default(PENDING)
+  issuedAt         DateTime          @default(now())
+  retiredAt        DateTime?
+  retirementReason String?
+
+  @@map("carbon_certificates")
+}
+
+// ============================================================
+// MODEL: SystemLog
+// ============================================================
+
+model SystemLog {
+  id        String      @id @default(uuid())
+  level     LogLevel    @default(INFO)
+  category  LogCategory @default(SYSTEM)
+  message   String
+  userId    String?
+  user      User?       @relation(fields: [userId], references: [id])
+  metadata  Json?
+  createdAt DateTime    @default(now())
+
+  @@index([level, category])
+  @@index([createdAt])
+  @@map("system_logs")
+}
+
+// ============================================================
+// MODEL: PlatformSetting
+// ============================================================
+
+model PlatformSetting {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  value       Json
+  description String?
+  updatedBy   String?
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+
+  user        User?    @relation(fields: [updatedBy], references: [id])
+
+  @@map("platform_settings")
+}

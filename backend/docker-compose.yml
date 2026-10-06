@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/carbonforge_b2b?schema=public
+      - JWT_SECRET=carbonforge-dev-secret-key-2026
+      - GROQ_API_KEY=${GROQ_API_KEY}
+    depends_on:
+      - db
+    volumes:
+      - ./uploads:/app/uploads
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=carbonforge_b2b
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

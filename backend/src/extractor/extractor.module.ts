@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
 import { ExtractorService } from './extractor.service';
 import { ExtractorController } from './extractor.controller';
 import { GroqService } from './groq.service';
-import { AuthModule } from '../auth/auth.module';
+import { PrismaModule } from '../prisma/prisma.module';
 
 @Module({
-  imports: [ConfigModule, AuthModule],
+  imports: [PrismaModule],
   controllers: [ExtractorController],
   providers: [ExtractorService, GroqService],
+  exports: [ExtractorService, GroqService],
 })
 export class ExtractorModule {}

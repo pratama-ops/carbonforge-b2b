@@ -1,11 +1,10 @@
 import { Module } from '@nestjs/common';
 import { MatchmakingService } from './matchmaking.service';
-import { MatchmakingController } from './matchmaking.controller';
-import { AuthModule } from '../auth/auth.module';
+import { PrismaModule } from '../prisma/prisma.module';
 
 @Module({
-  imports: [AuthModule],
-  controllers: [MatchmakingController],
+  imports: [PrismaModule],
   providers: [MatchmakingService],
+  exports: [MatchmakingService],
 })
 export class MatchmakingModule {}

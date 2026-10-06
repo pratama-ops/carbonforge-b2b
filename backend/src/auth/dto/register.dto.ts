@@ -1,30 +1,39 @@
 import {
   IsEmail,
-  IsNotEmpty,
+  IsEnum,
   IsString,
   MinLength,
   MaxLength,
-  Matches,
+  IsOptional,
 } from 'class-validator';
+import { UserRole } from '../../generated/prisma/client';
 
 export class RegisterDto {
-  @IsEmail({}, { message: 'Invalid email format' })
-  @IsNotEmpty({ message: 'Email is required' })
-  @MaxLength(255, { message: 'Email must not exceed 255 characters' })
+  @IsEmail()
   email: string;
 
-  @IsString({ message: 'Password must be a string' })
-  @IsNotEmpty({ message: 'Password is required' })
-  @MinLength(8, { message: 'Password must be at least 8 characters long' })
-  @MaxLength(72, { message: 'Password must not exceed 72 characters' })
-  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).*$/, {
-    message:
-      'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character',
-  })
+  @IsString()
+  @MinLength(8)
+  @MaxLength(100)
   password: string;
 
-  @IsString({ message: 'Company name must be a string' })
-  @IsNotEmpty({ message: 'Company name is required' })
-  @MaxLength(255, { message: 'Company name must not exceed 255 characters' })
-  companyName: string;
+  @IsString()
+  @MinLength(2)
+  @MaxLength(100)
+  name: string;
+
+  @IsEnum(UserRole)
+  role: UserRole;
+
+  @IsOptional()
+  @IsString()
+  phone?: string;
+
+  @IsOptional()
+  @IsString()
+  address?: string;
+
+  @IsOptional()
+  @IsString()
+  walletAddress?: string;
 }

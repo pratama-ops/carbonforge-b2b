@@ -1,41 +1,37 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
-
-export interface JwtPayload {
-  sub: string;
-  email: string;
-  role: string;
-}
+import { UserStatus } from '../generated/prisma/client';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
-    configService: ConfigService,
-    private readonly prisma: PrismaService,
+    config: ConfigService,
+    private prisma: PrismaService,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: configService.getOrThrow<string>('JWT_SECRET'),
+      secretOrKey: config.get<string>('JWT_SECRET', 'carbonforge-secret-key'),
     });
   }
 
-  async validate(payload: JwtPayload) {
+  async validate(payload: { sub: string; email: string; role: string }) {
     const user = await this.prisma.user.findUnique({
       where: { id: payload.sub },
       select: {
         id: true,
         email: true,
+        name: true,
         role: true,
-        companyName: true,
+        status: true,
       },
     });
 
-    if (!user) {
-      throw new UnauthorizedException('User not found');
+    if (!user || user.status === UserStatus.SUSPENDED) {
+      return null;
     }
 
     return user;
