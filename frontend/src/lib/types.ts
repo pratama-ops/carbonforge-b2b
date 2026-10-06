@@ -37,3 +37,45 @@ export interface ApiError {
   message: string;
   errors?: Record<string, string[]>;
 }
+
+// ============================================================================
+// CarbonForge B2B — Landowner Dashboard Types
+// ============================================================================
+
+export type VerificationStatus = "PENDING" | "VERIFIED" | "REJECTED";
+
+export type VegetationType = "Mangrove" | "Tropical Rainforest" | "Peatland";
+
+export interface LandPlot {
+  id: string;
+  name: string;
+  location: string;
+  coordinates: {
+    lat: number;
+    lng: number;
+  };
+  areaHa: number;
+  vegetationType: VegetationType;
+  status: VerificationStatus;
+  estimatedCarbonCredits: number;
+  registeredAt: string;
+  documentsCount: number;
+}
+
+export interface LandownerStats {
+  totalLandAreaHa: number;
+  totalEstimatedCarbonCredits: number;
+  verifiedCount: number;
+  pendingCount: number;
+  rejectedCount: number;
+  totalPlots: number;
+}
+
+export interface Transaction {
+  id: string;
+  plotName: string;
+  credits: number;
+  pricePerCredit: number;
+  status: "COMPLETED" | "IN_PROGRESS" | "PENDING";
+  date: string;
+}
